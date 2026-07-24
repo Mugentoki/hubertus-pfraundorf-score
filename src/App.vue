@@ -1,19 +1,14 @@
 <template>
-  <a href="#/">Home</a> |
-  <a href="#/about">About</a> |
-  <a href="#/non-existent-path">Broken Link</a>
   <component :is="currentView" />
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
-import Home from './routes/Home.vue'
-import About from './routes/About.vue'
-import NotFound from './routes/NotFound.vue'
+import Import from './views/Import.vue'
+import NotFound from './views/NotFound.vue'
 
 const routes = {
-  '/': Home,
-  '/about': About
+  '/': Import,
 }
 
 const currentPath = ref(window.location.hash)
@@ -34,6 +29,8 @@ const currentView = computed(() => {
 
   --default-font-family: 'Lato', sans-serif;
   --default-text-color: #ffffff;
+
+  --default-border-color: #ffffff;
 }
 </style>
 
@@ -121,7 +118,7 @@ body {
   font-family: var(--default-font-family);
   font-weight: 400;
   color: var(--default-text-color);
-  font-size: 1.6rem;
+  font-size: 1rem;
   word-wrap: break-word;
   hyphens: auto;
 }
