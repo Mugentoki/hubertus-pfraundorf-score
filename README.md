@@ -1,6 +1,12 @@
 # Hubertus - DISAG Scoring Software
 
-A simple software to evaluate DISAG Opticscore XML files
+A simple software to evaluate DISAG Opticscore XML files.
+
+> [!CAUTION]
+> This application should be treated as a prototype!
+> A quick solution was needed for our airgun clup.
+> For this reason, some best practices might have been discarded for faster development.
+> No tests are there for the same reason, so bugs and unexpected behaviour might occur.
 
 ## Dev Notes
 
@@ -15,7 +21,41 @@ Make sure that the pipeline doesn't know which mutations need to be done, it jus
 -> makes it easier to add new mutations
 -> mutations use the same interface
 
+### Views
+**Import**
+A simple view with a central drag and drop file upload field
+After uploading it changes to the scoring view automatially.
+
+**Scoring View**
+Left side: Area to set mutations, filters and sorting
+Main content: Live preview of the results
+
+### Scoring Features
+Some examples for the features, more might be implemented if needed.
+
+**Mutations**
+Those are functions the user can choose to "mutate" the actual data.
+Might discard data, change them or rearrange.
+Should be run first.
+- calculate summary
+- calculate average
+- calculate by day
+
+**Filters**
+- Show only users with X series
+
+**Sorting**
+- Sort by best Shot
+- Sort by best Series
+- Sort by best average
+
 ## Development
+
+### Scripts
+- `npm run tauri dev` -> runs localhost and opens application
+- `npm run dev` -> same but only accessible via browser
+
+## Further notes (from Tauri template setup)
 
 ### Tauri + Vue + TypeScript
 
