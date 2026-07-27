@@ -3,23 +3,17 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import Import from './views/Import.vue'
-import NotFound from './views/NotFound.vue'
+import { ref, computed } from 'vue';
+import { useResultStore } from './stores/result';
+import ImportView from './views/Import.vue';
+import ScoringView from './views/Scoring.vue';
+import NotFoundView from './views/NotFound.vue';
 
-const routes = {
-  '/': Import,
-}
+const resultStore = useResultStore();
+const hasLoadedResults = computed(() => resultStore.hasLoadedResults);
 
-const currentPath = ref(window.location.hash)
-
-window.addEventListener('hashchange', () => {
-  currentPath.value = window.location.hash
-})
-
-const currentView = computed(() => {
-  return routes[currentPath.value.slice(1) || '/'] || NotFound
-})
+// when a result has been loaded, we switch from "Import" to "Scoring" view.
+const currentView = computed(() => hasLoadedResults.value ? ScoringView : ImportView || NotFoundView);
 </script>
 
 <style block="VARIABLES">

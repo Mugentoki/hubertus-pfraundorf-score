@@ -16,6 +16,7 @@
 <script setup>
 import { Icon } from "@iconify/vue";
 import xmlJsParser from 'xml-js';
+import { useResultStore } from '../stores/result';
 
 function handleXmlImport(event) {
   const file = event.srcElement.files.length > 0 ? event.srcElement.files[0] : null;
@@ -25,12 +26,18 @@ function handleXmlImport(event) {
     return;
   }
 
+  const resultStore = useResultStore();
   const reader = new FileReader();
   let jsData = null;
 
   reader.onload = () => {
     jsData = xmlJsParser.xml2js(reader.result, {compact: true});
-    console.log(jsData);
+
+    // to start with, we set both original and mutated results the same
+    // original result will be used to reset the data
+    // mutated result will be used to do the actual mutations on it
+    resultStore.setOriginalResult(jsData);
+    resultStore.setMutatedResult(jsData);
   };
   reader.onerror = () => {
     alert("Fehler beim Lesen der XML Datei");
