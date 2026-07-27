@@ -2,13 +2,13 @@
   <div id="import-view">
     <h1>DISAG XML Import</h1>
     <form id="disag-xml-import" class="import-form">
-      <input type="file" id="disag-xml" name="disagxml" />
+      <input type="file" id="disag-xml" name="disagxml" accept=".xml,.XML" />
       <label for="disag-xml">
         <!-- Todo: Add workflow - how to export XML file from DISAG -->
         Hier klicken, um eine exportierte XML Datei von DISAG Opticscore auszuwählen.<br>
         Oder auf die Fläche ziehen (Drag & Drop).
       </label>
-      <Icon icon="line-md:upload-loop" height="4rem" />
+      <Icon icon="line-md:upload-outline-loop" height="4rem" />
     </form>
   </div>
 </template>
