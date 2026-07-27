@@ -1,20 +1,42 @@
 <template>
   <div id="import-view">
     <h1>DISAG XML Import</h1>
-    <form id="disag-xml-import" class="import-form">
-      <input type="file" id="disag-xml" name="disagxml" accept=".xml,.XML" />
+    <div id="disag-xml-import" class="import-form">
+      <input type="file" id="disag-xml" name="disagxml" accept=".xml,.XML"  @input="handleXmlImport"/>
       <label for="disag-xml">
         <!-- Todo: Add workflow - how to export XML file from DISAG -->
         Hier klicken, um eine exportierte XML Datei von DISAG Opticscore auszuwählen.<br>
         Oder auf die Fläche ziehen (Drag & Drop).
       </label>
       <Icon icon="line-md:upload-outline-loop" height="4rem" />
-    </form>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { Icon } from "@iconify/vue";
+import xmlJsParser from 'xml-js';
+
+function handleXmlImport(event) {
+  const file = event.srcElement.files.length > 0 ? event.srcElement.files[0] : null;
+
+  if (! file || file.type !== "text/xml") {
+    alert("Bitte XML Datei auswählen!");
+    return;
+  }
+
+  const reader = new FileReader();
+  let jsData = null;
+
+  reader.onload = () => {
+    jsData = xmlJsParser.xml2js(reader.result, {compact: true});
+    console.log(jsData);
+  };
+  reader.onerror = () => {
+    alert("Fehler beim Lesen der XML Datei");
+  }
+  reader.readAsText(file);
+}
 
 </script>
 
