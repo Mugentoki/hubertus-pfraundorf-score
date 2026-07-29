@@ -1,9 +1,16 @@
 <template>
     <div class="scoring-view">
         <div class="scoring-sidebar"></div>
-        <div class="scoring-table"></div>
+        <div class="scoring-table">
+            <Scoreboard />
+        </div>
     </div>
 </template>
+
+<script setup>
+import Scoreboard from '../components/Scoreboard.vue';
+
+</script>
 
 <style>
 .scoring-view {

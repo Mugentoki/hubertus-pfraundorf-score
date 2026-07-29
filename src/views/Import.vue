@@ -19,6 +19,8 @@ import xmlJsParser from 'xml-js';
 import { useResultStore } from '../stores/result';
 import normalizeResultData from '../lib/normalisation';
 
+const resultStore = useResultStore();
+
 function handleXmlImport(event) {
   const file = event.srcElement.files.length > 0 ? event.srcElement.files[0] : null;
 
@@ -27,7 +29,6 @@ function handleXmlImport(event) {
     return;
   }
 
-  const resultStore = useResultStore();
   const reader = new FileReader();
   let jsData = null;
 
