@@ -17,6 +17,7 @@
 import { Icon } from "@iconify/vue";
 import xmlJsParser from 'xml-js';
 import { useResultStore } from '../stores/result';
+import normalizeResultData from '../lib/normalisation';
 
 function handleXmlImport(event) {
   const file = event.srcElement.files.length > 0 ? event.srcElement.files[0] : null;
@@ -31,7 +32,7 @@ function handleXmlImport(event) {
   let jsData = null;
 
   reader.onload = () => {
-    jsData = xmlJsParser.xml2js(reader.result, {compact: true});
+    jsData = normalizeResultData(xmlJsParser.xml2js(reader.result, {compact: true}));
 
     // to start with, we set both original and mutated results the same
     // original result will be used to reset the data
