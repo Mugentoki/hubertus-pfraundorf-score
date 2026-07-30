@@ -5,6 +5,11 @@ export default function normalizeResultData(resultData) {
         groups: [
             {
                 name: "All Competitors",
+                statistics: {
+                    groupScore: 0,
+                    bestGroupSerie: 0,
+                    bestGroupTeiler: 0
+                },
                 competitors: normalizeCompetitors(resultData.result.shooters.shooter)
             }
         ]

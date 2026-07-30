@@ -9,7 +9,6 @@
 
 <script setup>
 import Scoreboard from '../components/Scoreboard.vue';
-
 </script>
 
 <style>

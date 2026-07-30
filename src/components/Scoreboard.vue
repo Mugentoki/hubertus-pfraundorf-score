@@ -1,23 +1,35 @@
 <template>
     <div class="scoreboard">
-        <table class="scoreboard-table">
-            <thead>
-                <tr>
-                    <th>Platz</th>
-                    <th>Name</th>
-                    <th>Ergebnis</th>
-                    <th>Einzelergebnisse</th>
-                </tr>
-            </thead>
-            <tbdoy>
-                <tr>
-                    <th>1</th>
-                    <th>Jemand</th>
-                    <th>1000 Ring</th>
-                    <th>98 80 93 48</th>
-                </tr>
-            </tbdoy>
-        </table>
+        <h1 class="scoreboard__title">{{ mutatedResult.name }}</h1>
+        <div
+            v-for="group in mutatedResult.groups"
+            :key="mutatedResult.groups.name"
+            class="scoreboard-group"
+        >
+            <strong
+                v-if="mutatedResult.groups.length > 1"
+                class="scoreboard-group__name"
+            >
+                {{ group.name }}
+           </strong>
+
+            <table class="scoreboard-table">
+                <tbody>
+                    <tr>
+                        <th>Platz</th>
+                        <th>Name</th>
+                        <th>Ergebnis</th>
+                        <th>Einzelergebnisse</th>
+                    </tr>
+                    <tr v-for="(competitor, index) in group.competitors" :key="competitor.fullName">
+                        <th>{{ index + 1 }}</th>
+                        <th>{{ competitor.fullName }}</th>
+                        <th>{{ competitor.statistics.totalScoreDecimal }}</th>
+                        <th>{{ joinSeriesCollectionScores(competitor.seriesCollections) }}</th>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 </template>
 
@@ -27,11 +39,35 @@ import { storeToRefs } from 'pinia'
 
 const resultStore = useResultStore();
 const { mutatedResult } = storeToRefs(resultStore);
+
+function joinSeriesCollectionScores(seriesCollection) {
+    let joinedScores = "";
+
+    seriesCollection.forEach((serie) => {
+        joinedScores += serie.totalScoreDecimal + " ";
+    });
+
+    return joinedScores;
+}
 </script>
 
 <style>
 .scoreboard,
 .scoreboard-table {
     width: 100%;
+}
+
+.scoreboard {
+    padding: 1rem;
+
+    .scoreboard__title {
+        font-size: 2.2rem;
+    }
+}
+
+.scoreboard-group {
+    .scoreboard-group__name {
+        font-size: 1.4rem;
+    }
 }
 </style>
