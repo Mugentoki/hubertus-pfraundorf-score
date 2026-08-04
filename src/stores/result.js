@@ -7,7 +7,8 @@ export const useResultStore = defineStore('result', () => {
     const originalResult = ref(null);
     const mutatedResult = ref(null);
     const resultModifiers = ref({
-        competitorGrouping: 'none'
+        competitorGrouping: 'none',
+        seriesGrouping: 'none'
     })
 
     /* getters */
@@ -32,6 +33,10 @@ export const useResultStore = defineStore('result', () => {
         resultModifiers.value.competitorGrouping = modifier;
     }
 
+    function setSeriesGroupingModifier(modifier) {
+        resultModifiers.value.seriesGrouping = modifier;
+    }
+
     function recalculateResult() {
         mutatedResult.value = calculateResult(originalResult.value, resultModifiers.value);
     }
@@ -53,6 +58,7 @@ export const useResultStore = defineStore('result', () => {
         setOriginalResult,
         setMutatedResult,
         setResultModifiers,
-        setCompetitorGroupingModifier
+        setCompetitorGroupingModifier,
+        setSeriesGroupingModifier
     }
 });

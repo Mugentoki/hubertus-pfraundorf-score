@@ -2,6 +2,7 @@
     <div class="scoring-view">
         <div class="scoring-sidebar">
             <CompetitorGrouping />
+            <SeriesGrouping />
         </div>
         <div class="scoring-table">
             <Scoreboard />
@@ -12,6 +13,7 @@
 <script setup>
 import Scoreboard from '../components/Scoreboard.vue';
 import CompetitorGrouping from '../components/modifiers/CompetitorGrouping.vue';
+import SeriesGrouping from '../components/modifiers/SeriesGrouping.vue';
 </script>
 
 <style>
