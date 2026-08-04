@@ -5,6 +5,7 @@
                 <option
                     v-for="option in groupingOptions" :key="option.type"
                     :value="option.type"
+                    :disabled="option.disabled"
                 >
                     {{ option.label }}
                 </option>
@@ -28,12 +29,14 @@ const groupingOptions = [
     {
         type: 'none',
         label: 'Keine Gruppierung',
-        description: "Es findet keine Gruppierung nach Team/Mannschaft statt."
+        description: "Es findet keine Gruppierung nach Team/Mannschaft statt.",
+        disabled: false
     },
     {
         type: 'team',
         label: 'Mannschaft',
-        description: "Die Schützen werden nach der jeweils hinterlegten Mannschaft sortiert."
+        description: "Die Schützen werden nach der jeweils hinterlegten Mannschaft sortiert.",
+        disabled: false
     }
 ]
 

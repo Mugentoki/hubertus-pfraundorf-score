@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
+import { calculateResult } from '../lib/resultCalculation';
 
 export const useResultStore = defineStore('result', () => {
     /* state properties */
@@ -10,12 +11,9 @@ export const useResultStore = defineStore('result', () => {
     })
 
     /* getters */
-    const getOriginalResult = computed(() => originalResult);
-    const getMutatedResult = computed(() => mutated);
     const hasLoadedResults = computed(() => {
         return (originalResult.value !== null && mutatedResult.value !== null) ? true : false;
     });
-    const getResultModifiers = computed(() => resultModifiers);
 
     /* actions */
     function setOriginalResult(result) {
@@ -34,15 +32,23 @@ export const useResultStore = defineStore('result', () => {
         resultModifiers.value.competitorGrouping = modifier;
     }
 
+    function recalculateResult() {
+        mutatedResult.value = calculateResult(originalResult.value);
+    }
+
+    watch(resultModifiers,
+        () => {
+            recalculateResult();
+        },
+        { deep: true}
+    );
+
     return {
         originalResult,
         mutatedResult,
         resultModifiers,
 
-        getOriginalResult,
-        getMutatedResult,
         hasLoadedResults,
-        getResultModifiers,
 
         setOriginalResult,
         setMutatedResult,
