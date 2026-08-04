@@ -57,6 +57,11 @@ function updateGroupingType(event) {
     flex-direction: column;
     gap: 0.25rem;
 
+    select,
+    option {
+        cursor: pointer;
+    }
+
     label {
         font-size: var(--font-small);
     }
