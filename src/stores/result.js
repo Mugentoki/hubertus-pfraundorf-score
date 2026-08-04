@@ -5,6 +5,9 @@ export const useResultStore = defineStore('result', () => {
     /* state properties */
     const originalResult = ref(null);
     const mutatedResult = ref(null);
+    const resultModifiers = ref({
+        competitorGrouping: 'none'
+    })
 
     /* getters */
     const getOriginalResult = computed(() => originalResult);
@@ -12,6 +15,7 @@ export const useResultStore = defineStore('result', () => {
     const hasLoadedResults = computed(() => {
         return (originalResult.value !== null && mutatedResult.value !== null) ? true : false;
     });
+    const getResultModifiers = computed(() => resultModifiers);
 
     /* actions */
     function setOriginalResult(result) {
@@ -22,15 +26,27 @@ export const useResultStore = defineStore('result', () => {
         mutatedResult.value = result;
     }
 
+    function setResultModifiers(modifiers) {
+        resultModifiers.value = modifiers;
+    }
+
+    function setCompetitorGroupingModifier(modifier) {
+        resultModifiers.value.competitorGrouping = modifier;
+    }
+
     return {
         originalResult,
         mutatedResult,
+        resultModifiers,
 
         getOriginalResult,
         getMutatedResult,
         hasLoadedResults,
+        getResultModifiers,
 
         setOriginalResult,
-        setMutatedResult
+        setMutatedResult,
+        setResultModifiers,
+        setCompetitorGroupingModifier
     }
 });

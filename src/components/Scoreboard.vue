@@ -57,6 +57,10 @@ function joinSeriesCollectionScores(seriesCollection) {
     width: 100%;
 }
 
+.scoreboard-table {
+    text-align: left;
+}
+
 .scoreboard {
     padding: 1rem;
 

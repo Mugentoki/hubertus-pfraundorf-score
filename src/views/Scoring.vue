@@ -1,6 +1,8 @@
 <template>
     <div class="scoring-view">
-        <div class="scoring-sidebar"></div>
+        <div class="scoring-sidebar">
+            <CompetitorGrouping />
+        </div>
         <div class="scoring-table">
             <Scoreboard />
         </div>
@@ -9,6 +11,7 @@
 
 <script setup>
 import Scoreboard from '../components/Scoreboard.vue';
+import CompetitorGrouping from '../components/modifiers/CompetitorGrouping.vue';
 </script>
 
 <style>
@@ -20,8 +23,9 @@ import Scoreboard from '../components/Scoreboard.vue';
 
 .scoring-sidebar {
     min-width: 350px;
-    border-right: 4px solid black;
+    border-right: 4px solid var(--ui-border-color);
     background-color: rgba(0,0,0,.25);
+    padding: 1rem;
 }
 
 .scoring-table {

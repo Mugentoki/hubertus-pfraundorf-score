@@ -21,10 +21,18 @@ const currentView = computed(() => hasLoadedResults.value ? ScoringView : Import
   --app-background-color: #224e00;
   --app-background-image: url('/src/assets/images/background.png');
 
+  --ui-background-color: rgba(0, 36, 0, 0.5);
+  --ui-border-color: rgba(0,0,0,0.35);
+
   --default-font-family: 'Lato', sans-serif;
   --default-text-color: #ffffff;
 
   --default-border-color: #ffffff;
+
+  --corner-default: 0.25rem /* 4px */
+
+  --font-normal: 1rem;
+  --font-small: 0.7rem;
 }
 </style>
 
