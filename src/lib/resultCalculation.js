@@ -1,5 +1,7 @@
+import { toRaw } from 'vue';
+
 export function calculateResult(originalResult, resultModifiers) {
-    let mutatedResult = originalResult;
+    let mutatedResult = structuredClone(toRaw(originalResult));
 
     mutatedResult = competitorGrouping(mutatedResult, resultModifiers.competitorGrouping);
     mutatedResult = seriesGrouping(mutatedResult, resultModifiers.seriesGrouping);
@@ -41,11 +43,28 @@ function competitorGrouping(result, groupingModifier) {
  * @returns 
  */
 function seriesGrouping(result, groupingModifier) {
-    console.log('result', result);
+    console.log(result);
     switch (groupingModifier) {
         case 'day':
             // group the series of each competitor into days
             // todo: implement
+            result.groups.forEach((group) => {
+                group.competitors.forEach((competitor) => {
+                    const seriesCollections = [];
+                    const series = competitor.seriesCollections[0];
+
+                    series.forEach((serie) => {
+                        const dayOfYear = getDayOfYear(serie.timestamp);
+
+                        console.log(serie);
+
+                        seriesCollections[dayOfYear] ??= [];
+                        seriesCollections[dayOfYear].push(serie);
+                    });
+
+                    competitor.seriesCollections = seriesCollections.filter(Boolean);
+                });
+            });
             break;
         case 'week':
             // group the series of each competitor into weeks
@@ -57,5 +76,14 @@ function seriesGrouping(result, groupingModifier) {
             break;
     }
 
+    console.log(result);
+
     return result;
+}
+
+function getDayOfYear(timestamp) {
+    const date = new Date(timestamp);
+    const start = new Date(date.getFullYear(), 0, 0);
+
+    return Math.floor((date - start) / 86400000);
 }
