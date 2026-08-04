@@ -30,7 +30,9 @@ function normalizeCompetitors(originalShooters) {
                 totalScore: shooter._attributes.totalscore_avg,
                 totalScoreDecimal: shooter._attributes.totalscore_avg_dec
             },
-            seriesCollections: normalizeSeries(shooter.shots.series)
+            seriesCollections: [
+                normalizeSeries(shooter.shots.series)
+            ]
         }
 
         competitors.push(competitor);

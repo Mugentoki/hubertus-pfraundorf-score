@@ -23,9 +23,9 @@
                     </tr>
                     <tr v-for="(competitor, index) in group.competitors" :key="competitor.fullName">
                         <th>{{ index + 1 }}</th>
-                        <th>{{ competitor.fullName }}</th>
-                        <th>{{ competitor.statistics.totalScoreDecimal }}</th>
-                        <th>{{ joinSeriesCollectionScores(competitor.seriesCollections) }}</th>
+                        <td>{{ competitor.fullName }}</td>
+                        <td>{{ competitor.statistics.totalScoreDecimal }}</td>
+                        <td>{{ joinSeriesCollectionScores(competitor.seriesCollections) }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -59,6 +59,10 @@ function joinSeriesCollectionScores(seriesCollection) {
 
 .scoreboard-table {
     text-align: left;
+
+    th, td {
+        padding: 0.25rem 0.5rem;
+    }
 }
 
 .scoreboard {
