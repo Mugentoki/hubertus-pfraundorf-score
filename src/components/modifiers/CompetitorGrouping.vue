@@ -36,7 +36,7 @@ const groupingOptions = [
         type: 'team',
         label: 'Mannschaft',
         description: "Die Schützen werden nach der jeweils hinterlegten Mannschaft sortiert.",
-        disabled: false
+        disabled: true
     }
 ]
 

@@ -33,7 +33,7 @@ export const useResultStore = defineStore('result', () => {
     }
 
     function recalculateResult() {
-        mutatedResult.value = calculateResult(originalResult.value);
+        mutatedResult.value = calculateResult(originalResult.value, resultModifiers.value);
     }
 
     watch(resultModifiers,
