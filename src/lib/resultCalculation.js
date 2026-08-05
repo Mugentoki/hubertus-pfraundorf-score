@@ -43,47 +43,60 @@ function competitorGrouping(result, groupingModifier) {
  * @returns 
  */
 function seriesGrouping(result, groupingModifier) {
-    console.log(result);
-    switch (groupingModifier) {
-        case 'day':
-            // group the series of each competitor into days
-            // todo: implement
-            result.groups.forEach((group) => {
-                group.competitors.forEach((competitor) => {
-                    const seriesCollections = [];
-                    const series = competitor.seriesCollections[0];
+    if (groupingModifier === 'none') return result;
 
-                    series.forEach((serie) => {
-                        const dayOfYear = getDayOfYear(serie.timestamp);
+    result.groups.forEach((group) => {
+        group.competitors.forEach((competitor) => {
+            const seriesCollections = [];
+            const series = competitor.seriesCollections[0];
 
-                        console.log(serie);
+            series.forEach((serie) => {
+                const seriesGroup = getGroupName(serie.timestamp, groupingModifier);
 
-                        seriesCollections[dayOfYear] ??= [];
-                        seriesCollections[dayOfYear].push(serie);
-                    });
-
-                    competitor.seriesCollections = seriesCollections.filter(Boolean);
-                });
+                seriesCollections[seriesGroup] ??= [];
+                seriesCollections[seriesGroup].push(serie);
             });
-            break;
-        case 'week':
-            // group the series of each competitor into weeks
-            // todo: implement
-            break;
-        case 'none':
-        default:
-            // nothing to do, since by default all series are in one group
-            break;
-    }
 
-    console.log(result);
+            competitor.seriesCollections = seriesCollections.filter(Boolean);
+        });
+    });
 
     return result;
 }
 
-function getDayOfYear(timestamp) {
+function getGroupName(timestamp, groupingModifier) {
+    const date = new Date(timestamp);
+
+    switch (groupingModifier) {
+        case 'day':
+                return getDayOfTimestamp(timestamp);
+            break;
+        case 'week':
+            console.log(getWeekOfTimestamp(timestamp));
+                return getWeekOfTimestamp(timestamp);
+            break;
+    }
+
+}
+
+function getDayOfTimestamp(timestamp) {
     const date = new Date(timestamp);
     const start = new Date(date.getFullYear(), 0, 0);
 
     return Math.floor((date - start) / 86400000);
+}
+
+/* Implements ISO calendar week */
+function getWeekOfTimestamp(timestamp) {
+    const date = new Date(timestamp);
+
+    // Move to Thursday of the current week
+    date.setDate(date.getDate() + 4 - (date.getDay() || 7));
+
+    // Find the first day of the ISO week-year
+    const yearStart = new Date(date.getFullYear(), 0, 1);
+
+    return Math.ceil(
+        ((date - yearStart) / 86400000 + 1) / 7
+    );
 }
