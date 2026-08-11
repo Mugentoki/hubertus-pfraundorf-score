@@ -9,7 +9,10 @@ export const useResultStore = defineStore('result', () => {
     const resultModifiers = ref({
         competitorGrouping: 'none',
         seriesGrouping: 'none',
-        seriesGroupCalculation: 'single'
+        seriesGroupCalculation: {
+            type: 'single',
+            options: {}
+        }
     })
 
     /* getters */

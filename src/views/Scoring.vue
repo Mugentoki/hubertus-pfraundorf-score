@@ -30,6 +30,9 @@ import SeriesGroupCalculation from '../components/modifiers/SeriesGroupCalculati
     border-right: 4px solid var(--ui-border-color);
     background-color: rgba(0,0,0,.25);
     padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
 .scoring-table {
