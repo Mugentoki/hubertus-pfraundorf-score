@@ -90,7 +90,7 @@ const calculationOptions = [
     {
         type: 'summary',
         label: 'Summe',
-        description: "Es wird die Summe der besten angegebenen Anzahl von Serien verwendet. Sind zu wenige Serien in der Gruppe, zählen diese als 0 Ring.",
+        description: "Es wird die Summe der besten, angegebenen Anzahl von Serien verwendet. Sind zu wenige Serien in der Gruppe, zählen diese als 0 Ring.",
         disabled: false
     },
     {

@@ -42,7 +42,17 @@ function normalizeCompetitors(originalShooters) {
 }
 
 function normalizeSeries(originalSeries) {
+    const collection = {
+        series: [],
+        statistics: {
+            ring: 0,
+            teiler: 0,
+            ringValues: []
+        }
+    }
     const series = [];
+    let tmpTeiler = 9999;
+    let tmpRing = 0;
 
     originalSeries.forEach((serieData) => {
         const serie = {
@@ -54,9 +64,17 @@ function normalizeSeries(originalSeries) {
         }
 
         series.push(serie);
+
+        tmpTeiler = Math.min(tmpTeiler, serieData._attributes.bester_teiler);
+        tmpRing = Math.max(tmpRing, serieData._attributes.totalscore_d)
     });
 
-    return series;
+    collection.series = series;
+    collection.statistics.ring = tmpRing;
+    collection.statistics.ringValues.push(tmpRing);
+    collection.statistics.teiler = tmpTeiler;
+
+    return collection;
 }
 
 function normalizeShots(originalShots) {

@@ -3,8 +3,11 @@ import { toRaw } from 'vue';
 export function calculateResult(originalResult, resultModifiers) {
     let mutatedResult = structuredClone(toRaw(originalResult));
 
-    mutatedResult = competitorGrouping(mutatedResult, resultModifiers.competitorGrouping);
-    mutatedResult = seriesGrouping(mutatedResult, resultModifiers.seriesGrouping);
+    competitorGrouping(mutatedResult, resultModifiers.competitorGrouping);
+    seriesGrouping(mutatedResult, resultModifiers.seriesGrouping);
+    seriesGroupCalculation(mutatedResult, resultModifiers.seriesGroupCalculation);
+
+    console.log(mutatedResult);
 
     return mutatedResult;
 }
@@ -29,8 +32,6 @@ function competitorGrouping(result, groupingModifier) {
             // nothing to do, since by default we have one single group
             break;
     }
-
-    return result;
 }
 
 /**
@@ -48,20 +49,59 @@ function seriesGrouping(result, groupingModifier) {
     result.groups.forEach((group) => {
         group.competitors.forEach((competitor) => {
             const seriesCollections = [];
-            const series = competitor.seriesCollections[0];
+            const collection = competitor.seriesCollections[0];
 
-            series.forEach((serie) => {
+            collection.series.forEach((serie) => {
                 const seriesGroup = getGroupName(serie.timestamp, groupingModifier);
 
-                seriesCollections[seriesGroup] ??= [];
-                seriesCollections[seriesGroup].push(serie);
+                seriesCollections[seriesGroup] ??= {
+                    series: [],
+                    statistics: {
+                        ring: 0,
+                        teiler: 0,
+                        ringValues: []
+                    }
+                };
+                seriesCollections[seriesGroup].series.push(serie);
             });
 
             competitor.seriesCollections = seriesCollections.filter(Boolean);
         });
     });
+}
 
-    return result;
+/**
+ * Calculates the series groups results, based on the modifier settings
+ * @param {*} result 
+ * @param {*} seriesGroupCalculationModifier 
+ */
+function seriesGroupCalculation(result, seriesGroupCalculationModifier) {
+
+    // add results to seriesCollection.statistics
+    switch (seriesGroupCalculationModifier.type) {
+        case 'single':
+            // find best single series and best teiler
+            console.log('single');
+            break;
+        case 'summary':
+            // sum best x numbers of series (use modifier option summaryAmount for it) - + add best teiler
+            console.log('summary');
+            break;
+        case 'average':
+            // calculate average from all series inside collection - + add best teiler
+            console.log('average');
+            break;
+        case 'midrange':
+            // calculate average from best and worst series inside collection - + add best teiler
+            console.log('midrange');
+            break;
+        case 'target':
+            // calculate closest series / teiler to given target -- use options targetTeiler and targetRing
+            console.log('target');
+            break;
+        default:
+            break;
+    }
 }
 
 function getGroupName(timestamp, groupingModifier) {
@@ -72,7 +112,6 @@ function getGroupName(timestamp, groupingModifier) {
                 return getDayOfTimestamp(timestamp);
             break;
         case 'week':
-            console.log(getWeekOfTimestamp(timestamp));
                 return getWeekOfTimestamp(timestamp);
             break;
     }
@@ -99,4 +138,24 @@ function getWeekOfTimestamp(timestamp) {
     return Math.ceil(
         ((date - yearStart) / 86400000 + 1) / 7
     );
+}
+
+function getBestGroupSeriesAndTeiler(result) {
+    let tmpSeries = 0;
+    let tmpTeiler = 9999;
+
+    result.groups.forEach((group) => {
+        group.competitors.forEach((competitor) => {
+            competitor.seriesCollections.forEach((collection) => {
+                collection.series.forEach((serie) => {
+                    tmpSeries = Math.max(tmpSeries, serie.totalScoreDecimal);
+                    tmpTeiler = Math.min(tmpTeiler, serie.bestTeiler);
+                });
+
+                collection.statistics.ring = tmpSeries;
+                collection.statistics.ringValues.push(tmpSeries);
+                collection.statistics.teiler = tmpTeiler;
+            });
+        });
+    });
 }
