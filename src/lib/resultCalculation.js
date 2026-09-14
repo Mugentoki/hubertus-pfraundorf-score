@@ -82,10 +82,11 @@ function seriesGroupCalculation(result, seriesGroupCalculationModifier) {
         case 'single':
             // find best single series and best teiler
             console.log('single');
+            getBestGroupSeriesAndTeiler(result);
             break;
         case 'summary':
             // sum best x numbers of series (use modifier option summaryAmount for it) - + add best teiler
-            console.log('summary');
+            getGroupSeriesSumAndTeiler(result, seriesGroupCalculationModifier);
             break;
         case 'average':
             // calculate average from all series inside collection - + add best teiler
@@ -158,4 +159,47 @@ function getBestGroupSeriesAndTeiler(result) {
             });
         });
     });
+}
+
+function getGroupSeriesSumAndTeiler(result, modifier) {
+    const amount = modifier.options.summaryAmount;
+
+    result.groups.forEach((group) => {
+        group.competitors.forEach((competitor) => {
+            let tmpSeries = 0;
+            let tmpTeiler = 9999;
+
+            competitor.seriesCollections.forEach((collection) => {
+                const bestSeries = sortSeriesDescending(collection.series).slice(0, amount);
+
+                let sum = 0;
+                bestSeries.forEach((serie) => {
+                    sum += serie.totalScoreDecimal;
+                });
+
+                sum = Math.round(sum * 10) / 10;
+
+                collection.statistics.ring = sum;
+                collection.statistics.ringValues.push(sum);
+                tmpSeries = sum > tmpSeries ? sum : tmpSeries;
+
+                let bestTeiler = 9999;
+                collection.series.forEach((serie) => {
+                    bestTeiler = Math.min(bestTeiler, serie.bestTeiler);
+                });
+                collection.statistics.teiler = bestTeiler;
+                tmpTeiler = bestTeiler < tmpTeiler ? bestTeiler : tmpTeiler;
+            });
+
+            competitor.statistics.bester_teiler = tmpTeiler;
+            competitor.statistics.totalScoreDecimal = tmpSeries;
+        });
+    });
+}
+
+/**
+ * Sorts an array of series by descending totalScoreDecimal
+ */
+function sortSeriesDescending(series) {
+    return series.sort((a, b) => b.totalScoreDecimal - a.totalScoreDecimal)
 }

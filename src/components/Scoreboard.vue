@@ -40,11 +40,11 @@ import { storeToRefs } from 'pinia'
 const resultStore = useResultStore();
 const { mutatedResult } = storeToRefs(resultStore);
 
-function joinSeriesCollectionScores(seriesCollection) {
+function joinSeriesCollectionScores(seriesCollections) {
     let joinedScores = "";
 
-    seriesCollection.forEach((serie) => {
-        joinedScores += serie.totalScoreDecimal + " ";
+    seriesCollections.forEach((collection) => {
+        joinedScores += collection.statistics.ringValues.join(' ') + ' ';
     });
 
     return joinedScores;

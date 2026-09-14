@@ -28,7 +28,7 @@ function normalizeCompetitors(originalShooters) {
             statistics: {
                 bester_teiler: shooter._attributes.bester_teiler,
                 totalScore: shooter._attributes.totalscore_avg,
-                totalScoreDecimal: shooter._attributes.totalscore_avg_dec
+                totalScoreDecimal: Number(shooter._attributes.totalscore_avg_dec)
             },
             seriesCollections: [
                 normalizeSeries(shooter.shots.series)
@@ -58,7 +58,7 @@ function normalizeSeries(originalSeries) {
         const serie = {
             bestTeiler: serieData._attributes.bester_teiler,
             totalScore: serieData._attributes.totalscore,
-            totalScoreDecimal: serieData._attributes.totalscore_d,
+            totalScoreDecimal: Number(serieData._attributes.totalscore_d),
             timestamp: getSerieTimestamp(serieData),
             shots: normalizeShots(serieData.shot)
         }
