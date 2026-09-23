@@ -81,7 +81,6 @@ function seriesGroupCalculation(result, seriesGroupCalculationModifier) {
     switch (seriesGroupCalculationModifier.type) {
         case 'single':
             // find best single series and best teiler
-            console.log('single');
             getBestGroupSeriesAndTeiler(result);
             break;
         case 'summary':
@@ -90,7 +89,7 @@ function seriesGroupCalculation(result, seriesGroupCalculationModifier) {
             break;
         case 'average':
             // calculate average from all series inside collection - + add best teiler
-            console.log('average');
+            getGroupSeriesAverageAndTeiler(result);
             break;
         case 'midrange':
             // calculate average from best and worst series inside collection - + add best teiler
@@ -193,6 +192,48 @@ function getGroupSeriesSumAndTeiler(result, modifier) {
 
             competitor.statistics.bester_teiler = tmpTeiler;
             competitor.statistics.totalScoreDecimal = tmpSeries;
+        });
+    });
+}
+
+/**
+ * Calculates the average of all series per series collection
+ * and takes the best teiler of all series
+ *
+ * @param {*} result
+ */
+function getGroupSeriesAverageAndTeiler(result) {
+    result.groups.forEach((group) => {
+        group.competitors.forEach((competitor) => {
+            let bestAverage = 0;
+            let bestTeiler = 9999;
+
+            competitor.seriesCollections.forEach((collection) => {
+                let sum = 0;
+                collection.series.forEach((serie) => {
+                    sum += serie.totalScoreDecimal;
+                });
+
+                // guard: 0 series → 0 rings (avoids 0/0 = NaN, matches summary behavior)
+                const average = collection.series.length === 0
+                    ? 0
+                    : Math.round((sum / collection.series.length) * 10) / 10;
+
+                collection.statistics.ring = average;
+                collection.statistics.ringValues.push(average);
+
+                let currentBestTeiler = 9999;
+                collection.series.forEach((serie) => {
+                    currentBestTeiler = Math.min(currentBestTeiler, serie.bestTeiler);
+                });
+                collection.statistics.teiler = currentBestTeiler;
+
+                bestAverage = average > bestAverage ? average : bestAverage;
+                bestTeiler = currentBestTeiler < bestTeiler ? currentBestTeiler : bestTeiler;
+            });
+
+            competitor.statistics.totalScoreDecimal = bestAverage;
+            competitor.statistics.bester_teiler = bestTeiler;
         });
     });
 }
