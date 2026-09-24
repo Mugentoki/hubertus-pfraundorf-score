@@ -88,12 +88,12 @@ function seriesGroupCalculation(result, seriesGroupCalculationModifier) {
             getGroupSeriesSumAndTeiler(result, seriesGroupCalculationModifier);
             break;
         case 'average':
-            // calculate average from all series inside collection - + add best teiler
-            getGroupSeriesAverageAndTeiler(result);
+            // calculate average per collection, best X collections (options.bestAmount) + best teiler
+            getGroupSeriesAverageAndTeiler(result, seriesGroupCalculationModifier);
             break;
         case 'midrange':
-            // average of best and worst series inside collection - + add best teiler
-            getGroupSeriesMidrangeAndTeiler(result);
+            // midrange per collection, best X collections (options.bestAmount) + best teiler
+            getGroupSeriesMidrangeAndTeiler(result, seriesGroupCalculationModifier);
             break;
         case 'target':
             // closest series / teiler to given target -- use options targetTeiler and targetRing
@@ -197,18 +197,21 @@ function getGroupSeriesSumAndTeiler(result, modifier) {
 }
 
 /**
- * Calculates the average of all series per series collection
- * and takes the best teiler of all series
+ * Calculates the average of all series per series collection,
+ * keeps only the best X collections (X = options.bestAmount) per competitor,
+ * and sums their group results into totalScoreDecimal.
+ * The best teiler is always the lowest bestTeiler across all series of all
+ * collections, computed before filtering.
  *
  * @param {*} result
+ * @param {*} seriesGroupCalculationModifier
  */
-function getGroupSeriesAverageAndTeiler(result) {
+function getGroupSeriesAverageAndTeiler(result, seriesGroupCalculationModifier) {
+    const amount = Math.max(1, Number(seriesGroupCalculationModifier.options.bestAmount) || 1);
+
     result.groups.forEach((group) => {
         group.competitors.forEach((competitor) => {
-            let bestAverage = 0;
-            let bestTeiler = 9999;
-
-            competitor.seriesCollections.forEach((collection) => {
+            const scoredCollections = competitor.seriesCollections.map((collection) => {
                 let sum = 0;
                 collection.series.forEach((serie) => {
                     sum += serie.totalScoreDecimal;
@@ -219,38 +222,60 @@ function getGroupSeriesAverageAndTeiler(result) {
                     ? 0
                     : Math.round((sum / collection.series.length) * 10) / 10;
 
-                collection.statistics.ring = average;
-                collection.statistics.ringValues.push(average);
-
                 let currentBestTeiler = 9999;
                 collection.series.forEach((serie) => {
                     currentBestTeiler = Math.min(currentBestTeiler, serie.bestTeiler);
                 });
-                collection.statistics.teiler = currentBestTeiler;
 
-                bestAverage = average > bestAverage ? average : bestAverage;
-                bestTeiler = currentBestTeiler < bestTeiler ? currentBestTeiler : bestTeiler;
+                return { collection, score: average, teiler: currentBestTeiler };
             });
 
-            competitor.statistics.totalScoreDecimal = bestAverage;
+            let bestTeiler = 9999;
+            scoredCollections.forEach(({ teiler }) => {
+                bestTeiler = Math.min(bestTeiler, teiler);
+            });
+
+            const selected = new Set(
+                [...scoredCollections]
+                    .sort((a, b) => b.score - a.score)
+                    .slice(0, amount)
+                    .map(({ collection }) => collection)
+            );
+
+            let sumOfKeptScores = 0;
+            const keptCollections = scoredCollections
+                .filter(({ collection }) => selected.has(collection))
+                .map(({ collection, score, teiler }) => {
+                    collection.statistics.ring = score;
+                    collection.statistics.ringValues.push(score);
+                    collection.statistics.teiler = teiler;
+                    sumOfKeptScores += score;
+                    return collection;
+                });
+
+            competitor.seriesCollections = keptCollections;
+            competitor.statistics.totalScoreDecimal = Math.round(sumOfKeptScores * 10) / 10;
             competitor.statistics.bester_teiler = bestTeiler;
         });
     });
 }
 
 /**
- * Calculates the midrange (best + worst) / 2 of all series per series collection
- * and takes the best teiler of all series
+ * Calculates the midrange (best + worst) / 2 per series collection,
+ * keeps only the best X collections (X = options.bestAmount) per competitor,
+ * and sums their group results into totalScoreDecimal.
+ * The best teiler is always the lowest bestTeiler across all series of all
+ * collections, computed before filtering.
  *
  * @param {*} result
+ * @param {*} seriesGroupCalculationModifier
  */
-function getGroupSeriesMidrangeAndTeiler(result) {
+function getGroupSeriesMidrangeAndTeiler(result, seriesGroupCalculationModifier) {
+    const amount = Math.max(1, Number(seriesGroupCalculationModifier.options.bestAmount) || 1);
+
     result.groups.forEach((group) => {
         group.competitors.forEach((competitor) => {
-            let bestMidrange = 0;
-            let bestTeiler = 9999;
-
-            competitor.seriesCollections.forEach((collection) => {
+            const scoredCollections = competitor.seriesCollections.map((collection) => {
                 let best = 0;
                 let worst = Infinity;
                 collection.series.forEach((serie) => {
@@ -263,20 +288,39 @@ function getGroupSeriesMidrangeAndTeiler(result) {
                     ? 0
                     : Math.round(((best + worst) / 2) * 10) / 10;
 
-                collection.statistics.ring = midrange;
-                collection.statistics.ringValues.push(midrange);
-
                 let currentBestTeiler = 9999;
                 collection.series.forEach((serie) => {
                     currentBestTeiler = Math.min(currentBestTeiler, serie.bestTeiler);
                 });
-                collection.statistics.teiler = currentBestTeiler;
 
-                bestMidrange = midrange > bestMidrange ? midrange : bestMidrange;
-                bestTeiler = currentBestTeiler < bestTeiler ? currentBestTeiler : bestTeiler;
+                return { collection, score: midrange, teiler: currentBestTeiler };
             });
 
-            competitor.statistics.totalScoreDecimal = bestMidrange;
+            let bestTeiler = 9999;
+            scoredCollections.forEach(({ teiler }) => {
+                bestTeiler = Math.min(bestTeiler, teiler);
+            });
+
+            const selected = new Set(
+                [...scoredCollections]
+                    .sort((a, b) => b.score - a.score)
+                    .slice(0, amount)
+                    .map(({ collection }) => collection)
+            );
+
+            let sumOfKeptScores = 0;
+            const keptCollections = scoredCollections
+                .filter(({ collection }) => selected.has(collection))
+                .map(({ collection, score, teiler }) => {
+                    collection.statistics.ring = score;
+                    collection.statistics.ringValues.push(score);
+                    collection.statistics.teiler = teiler;
+                    sumOfKeptScores += score;
+                    return collection;
+                });
+
+            competitor.seriesCollections = keptCollections;
+            competitor.statistics.totalScoreDecimal = Math.round(sumOfKeptScores * 10) / 10;
             competitor.statistics.bester_teiler = bestTeiler;
         });
     });

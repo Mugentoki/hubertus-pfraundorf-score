@@ -31,6 +31,34 @@
                     </label>
                 </template>
 
+                <template v-if="activeModifier === 'average'">
+                    <label for="best-amount-average">
+                        <input
+                            id="best-amount-average"
+                            name="bestAmount"
+                            type="number"
+                            step="1"
+                            min="1"
+                            v-model="calculationModifier.options.bestAmount"
+                        />
+                        <span>Anzahl beste Serien</span>
+                    </label>
+                </template>
+
+                <template v-if="activeModifier === 'midrange'">
+                    <label for="best-amount-midrange">
+                        <input
+                            id="best-amount-midrange"
+                            name="bestAmount"
+                            type="number"
+                            step="1"
+                            min="1"
+                            v-model="calculationModifier.options.bestAmount"
+                        />
+                        <span>Anzahl beste Serien</span>
+                    </label>
+                </template>
+
                 <template v-if="activeModifier === 'target'">
                     <label for="target-teiler">
                         <input
@@ -75,6 +103,7 @@ const calculationModifier = ref({
     type: 'single',
     options: {
         summaryAmount: 1,
+        bestAmount: 1,
         targetTeiler: 0,
         targetRing: 110
     }
