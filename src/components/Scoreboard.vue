@@ -24,7 +24,7 @@
                     <tr v-for="(competitor, index) in group.competitors" :key="competitor.fullName">
                         <th>{{ index + 1 }}</th>
                         <td>{{ competitor.fullName }}</td>
-                        <td>{{ competitor.statistics.totalScoreDecimal }}</td>
+                        <td>{{ getDisplayResult(competitor) }}</td>
                         <td>{{ joinSeriesCollectionScores(competitor.seriesCollections) }}</td>
                     </tr>
                 </tbody>
@@ -39,6 +39,13 @@ import { storeToRefs } from 'pinia'
 
 const resultStore = useResultStore();
 const { mutatedResult } = storeToRefs(resultStore);
+
+function getDisplayResult(competitor) {
+    const info = competitor.rankingResult;
+    const value = info ? info.value : competitor.statistics.totalScoreDecimal;
+    const unit = info ? (info.unit === 'teiler' ? 'Teiler' : 'Ring') : 'Ring';
+    return Number.isFinite(value) ? `${value} ${unit}` : '–';
+}
 
 function joinSeriesCollectionScores(seriesCollections) {
     let joinedScores = "";

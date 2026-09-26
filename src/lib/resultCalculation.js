@@ -83,6 +83,21 @@ function extractCompetitorTeilers(result) {
  *   pick: higher "Ergebnis", tie → lower best teiler), so first-seen wins.
  * - Any other or unknown type is a no-op.
  *
+ * After the sort/draft, every competitor in the final group order is
+ * annotated with `competitor.rankingResult = { value, unit }` for display:
+ * - `ring`: `{ value: statistics.totalScoreDecimal, unit: 'ring' }` (the
+ *   computed result value, a number in every calculation mode)
+ * - `teiler`: `{ value: teilerInfo.get(competitor).best, unit: 'teiler' }`
+ *   (best teiler from the pre-filter snapshot)
+ * - `adlerserie`: per row index `i`, the value/unit of pick `i` is shown
+ *   (same parity formula as `adlerserieDraft`): Teiler pick → teiler value,
+ *   Ring pick → `totalScoreDecimal`.
+ * - unknown types: no annotation (display falls back to `totalScoreDecimal`).
+ *
+ * Degenerate competitors with `best = Infinity` therefore get
+ * `value: Infinity` in a teiler annotation; the display layer is expected to
+ * render that as "–" (it is not rendered as an Infinity literal).
+ *
  * The teiler keys are taken from the pre-filter snapshot built by
  * `extractCompetitorTeilers` (average/midrange remove whole collections
  * during calculation); the ring key always comes from the computed result
@@ -106,12 +121,24 @@ function applyRanking(result, rankingModifier, teilerInfo) {
                     compareNumbers(a.statistics.totalScoreDecimal, b.statistics.totalScoreDecimal)
                     || compareTeilerValue(teilerInfo.get(a).best, teilerInfo.get(b).best)
                 );
+                group.competitors.forEach((competitor) => {
+                    annotateRankingResult(competitor, {
+                        value: competitor.statistics.totalScoreDecimal,
+                        unit: 'ring'
+                    });
+                });
                 break;
             case 'teiler':
                 group.competitors.sort((a, b) =>
                     compareTeilerValue(teilerInfo.get(a).best, teilerInfo.get(b).best)
                     || compareTeilerValue(teilerInfo.get(a).second, teilerInfo.get(b).second)
                 );
+                group.competitors.forEach((competitor) => {
+                    annotateRankingResult(competitor, {
+                        value: teilerInfo.get(competitor).best,
+                        unit: 'teiler'
+                    });
+                });
                 break;
             case 'adlerserie':
                 group.competitors = adlerserieDraft(
@@ -119,11 +146,33 @@ function applyRanking(result, rankingModifier, teilerInfo) {
                     teilerInfo,
                     rankingModifier.options.adlerStartWithTeiler
                 );
+                group.competitors.forEach((competitor, index) => {
+                    const useTeilerPick = rankingModifier.options.adlerStartWithTeiler
+                        ? index % 2 === 0
+                        : index % 2 === 1;
+                    annotateRankingResult(
+                        competitor,
+                        useTeilerPick
+                            ? { value: teilerInfo.get(competitor).best, unit: 'teiler' }
+                            : { value: competitor.statistics.totalScoreDecimal, unit: 'ring' }
+                    );
+                });
                 break;
             default:
                 break;
         }
     });
+}
+
+/**
+ * Attaches the display annotation `rankingResult = { value, unit }` to a
+ * competitor in the final sorted/drafted group order (see `applyRanking`).
+ *
+ * @param {*} competitor
+ * @param {{ value: number, unit: string }} rankingResult
+ */
+function annotateRankingResult(competitor, rankingResult) {
+    competitor.rankingResult = rankingResult;
 }
 
 /**

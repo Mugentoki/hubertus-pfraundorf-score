@@ -35,11 +35,10 @@ function handleXmlImport(event) {
   reader.onload = () => {
     jsData = normalizeResultData(xmlJsParser.xml2js(reader.result, {compact: true}));
 
-    // to start with, we set both original and mutated results the same
-    // original result will be used to reset the data
-    // mutated result will be used to do the actual mutations on it
+    // original result is the basis/reset for recalculations
+    // mutated result is the result of calculateResult (fresh clone + annotations)
     resultStore.setOriginalResult(jsData);
-    resultStore.setMutatedResult(jsData);
+    resultStore.recalculateResult();
   };
   reader.onerror = () => {
     alert("Fehler beim Lesen der XML Datei");

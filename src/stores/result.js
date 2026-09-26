@@ -76,6 +76,7 @@ export const useResultStore = defineStore('result', () => {
         setOriginalResult,
         setMutatedResult,
         setResultModifiers,
+        recalculateResult,
         setCompetitorGroupingModifier,
         setSeriesGroupCalculationModifier,
         setSeriesGroupingModifier,
