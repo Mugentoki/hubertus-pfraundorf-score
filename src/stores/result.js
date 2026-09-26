@@ -12,6 +12,12 @@ export const useResultStore = defineStore('result', () => {
         seriesGroupCalculation: {
             type: 'single',
             options: {}
+        },
+        ranking: {
+            type: 'ring',
+            options: {
+                adlerStartWithTeiler: false
+            }
         }
     })
 
@@ -45,6 +51,10 @@ export const useResultStore = defineStore('result', () => {
         resultModifiers.value.seriesGroupCalculation = modifier;
     }
 
+    function setRankingModifier(modifier) {
+        resultModifiers.value.ranking = modifier;
+    }
+
     function recalculateResult() {
         mutatedResult.value = calculateResult(originalResult.value, resultModifiers.value);
     }
@@ -68,6 +78,7 @@ export const useResultStore = defineStore('result', () => {
         setResultModifiers,
         setCompetitorGroupingModifier,
         setSeriesGroupCalculationModifier,
-        setSeriesGroupingModifier
+        setSeriesGroupingModifier,
+        setRankingModifier
     }
 });

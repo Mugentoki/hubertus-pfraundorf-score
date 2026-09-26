@@ -3,9 +3,13 @@ import { toRaw } from 'vue';
 export function calculateResult(originalResult, resultModifiers) {
     let mutatedResult = structuredClone(toRaw(originalResult));
 
+    const teilerInfo = extractCompetitorTeilers(mutatedResult);
+
     competitorGrouping(mutatedResult, resultModifiers.competitorGrouping);
     seriesGrouping(mutatedResult, resultModifiers.seriesGrouping);
     seriesGroupCalculation(mutatedResult, resultModifiers.seriesGroupCalculation);
+
+    applyRanking(mutatedResult, resultModifiers.ranking, teilerInfo);
 
     console.log(mutatedResult);
 
@@ -13,13 +17,238 @@ export function calculateResult(originalResult, resultModifiers) {
 }
 
 /**
+ * Collects, for every competitor, all finite `shot.teiler` values over all
+ * shots of all series of all collections and returns a Map keyed by the
+ * competitor object reference. Each entry contains the lowest teiler (`best`)
+ * and the second-lowest teiler (`second`); duplicates are allowed and values
+ * may come from the same series. Non-finite values (empty/missing teiler
+ * strings) are filtered out; a competitor with fewer than two finite values
+ * gets `Infinity` for the missing position and therefore always loses a
+ * teiler tie-break.
+ *
+ * Must be called on the result clone before series grouping/calculation can
+ * remove collections, so the keys are taken from the fresh pre-filter data.
+ *
+ * @param {*} result
+ * @returns {Map<*, { best: number, second: number }>}
+ */
+function extractCompetitorTeilers(result) {
+    const teilerInfo = new Map();
+
+    result.groups.forEach((group) => {
+        group.competitors.forEach((competitor) => {
+            const teilers = [];
+            competitor.seriesCollections.forEach((collection) => {
+                collection.series.forEach((serie) => {
+                    (serie.shots ?? []).forEach((shot) => {
+                        // Number(null)/Number('') are 0, so guard against
+                        // missing/empty values explicitly, not just non-finite
+                        const teiler = Number(shot.teiler);
+                        const usable = shot.teiler !== null
+                            && shot.teiler !== undefined
+                            && shot.teiler !== ''
+                            && Number.isFinite(teiler);
+
+                        if (usable) {
+                            teilers.push(teiler);
+                        }
+                    });
+                });
+            });
+
+            teilers.sort((a, b) => a - b);
+            teilerInfo.set(competitor, {
+                best: teilers[0] ?? Infinity,
+                second: teilers[1] ?? Infinity
+            });
+        });
+    });
+
+    return teilerInfo;
+}
+
+/**
+ * Sorts every group's competitors according to the ranking modifier.
+ *
+ * - `ring`: highest computed "Ergebnis" (`statistics.totalScoreDecimal`)
+ *   first, tie → best (lowest) teiler, still tied → import order
+ *   (stable sort keeps it).
+ * - `teiler`: best (lowest) teiler first, tie → second-best teiler,
+ *   still tied → import order.
+ * - `adlerserie`: alternating draft placing every competitor exactly once:
+ *   pick i is a teiler pick when `options.adlerStartWithTeiler` toggles the
+ *   parity, otherwise it is a ring pick. Each pick scans the remaining
+ *   competitors in import order and only takes a candidate that is strictly
+ *   better (teiler pick: lower best teiler, tie → higher "Ergebnis"; ring
+ *   pick: higher "Ergebnis", tie → lower best teiler), so first-seen wins.
+ * - Any other or unknown type is a no-op.
+ *
+ * The teiler keys are taken from the pre-filter snapshot built by
+ * `extractCompetitorTeilers` (average/midrange remove whole collections
+ * during calculation); the ring key always comes from the computed result
+ * value, which is a number in every calculation mode. Degenerate
+ * competitors have `Infinity` teiler values and therefore always lose
+ * teiler tie-breaks.
+ *
+ * @param {*} result
+ * @param {*} rankingModifier
+ * @param {Map<*, { best: number, second: number }>} teilerInfo
+ */
+function applyRanking(result, rankingModifier, teilerInfo) {
+    if (!rankingModifier) {
+        rankingModifier = { type: 'ring', options: { adlerStartWithTeiler: false } };
+    }
+
+    result.groups.forEach((group) => {
+        switch (rankingModifier.type) {
+            case 'ring':
+                group.competitors.sort((a, b) =>
+                    compareNumbers(a.statistics.totalScoreDecimal, b.statistics.totalScoreDecimal)
+                    || compareTeilerValue(teilerInfo.get(a).best, teilerInfo.get(b).best)
+                );
+                break;
+            case 'teiler':
+                group.competitors.sort((a, b) =>
+                    compareTeilerValue(teilerInfo.get(a).best, teilerInfo.get(b).best)
+                    || compareTeilerValue(teilerInfo.get(a).second, teilerInfo.get(b).second)
+                );
+                break;
+            case 'adlerserie':
+                group.competitors = adlerserieDraft(
+                    group.competitors,
+                    teilerInfo,
+                    rankingModifier.options.adlerStartWithTeiler
+                );
+                break;
+            default:
+                break;
+        }
+    });
+}
+
+/**
+ * Runs the alternating Adlerserie draft over one group's competitors and
+ * returns a new array with every competitor exactly once. See `applyRanking`
+ * for the pick semantics.
+ *
+ * @param {*} competitors
+ * @param {Map<*, { best: number, second: number }>} teilerInfo
+ * @param {boolean} startWithTeiler
+ * @returns {Array}
+ */
+function adlerserieDraft(competitors, teilerInfo, startWithTeiler) {
+    const remaining = [...competitors];
+    const ordered = [];
+
+    while (remaining.length > 0) {
+        const useTeilerPick = startWithTeiler
+            ? ordered.length % 2 === 0
+            : ordered.length % 2 === 1;
+
+        let pickedIndex = 0;
+
+        for (let i = 1; i < remaining.length; i++) {
+            const beats = useTeilerPick
+                ? isTeilerPickBetter(remaining[i], remaining[pickedIndex], teilerInfo)
+                : isRingPickBetter(remaining[i], remaining[pickedIndex], teilerInfo);
+
+            if (beats) {
+                pickedIndex = i;
+            }
+        }
+
+        ordered.push(remaining.splice(pickedIndex, 1)[0]);
+    }
+
+    return ordered;
+}
+
+/**
+ * Strict-improvement comparison for an Adlerserie teiler pick:
+ * lower best teiler wins, tie → higher "Ergebnis".
+ *
+ * @param {*} a
+ * @param {*} b
+ * @param {Map<*, { best: number, second: number }>} teilerInfo
+ * @returns {boolean}
+ */
+function isTeilerPickBetter(a, b, teilerInfo) {
+    const bestA = teilerInfo.get(a).best;
+    const bestB = teilerInfo.get(b).best;
+
+    return bestA < bestB
+        || (bestA === bestB && a.statistics.totalScoreDecimal > b.statistics.totalScoreDecimal);
+}
+
+/**
+ * Strict-improvement comparison for an Adlerserie ring pick:
+ * higher "Ergebnis" wins, tie → lower best teiler.
+ *
+ * @param {*} a
+ * @param {*} b
+ * @param {Map<*, { best: number, second: number }>} teilerInfo
+ * @returns {boolean}
+ */
+function isRingPickBetter(a, b, teilerInfo) {
+    const bestA = teilerInfo.get(a).best;
+    const bestB = teilerInfo.get(b).best;
+
+    return a.statistics.totalScoreDecimal > b.statistics.totalScoreDecimal
+        || (a.statistics.totalScoreDecimal === b.statistics.totalScoreDecimal && bestA < bestB);
+}
+
+/**
+ * Sort comparator for teiler values (lower wins). `Infinity` marks
+ * "no value at all" and therefore ranks after every finite teiler.
+ *
+ * @param {number} a
+ * @param {number} b
+ * @returns {number}
+ */
+function compareTeilerValue(a, b) {
+    if (a === b) {
+        return 0;
+    }
+    if (a === Infinity) {
+        return 1;
+    }
+    if (b === Infinity) {
+        return -1;
+    }
+
+    return a - b;
+}
+
+/**
+ * Descending sort comparator for ring scores (higher wins).
+ * Non-finite values (missing/invalid "Ergebnis") rank after all finite scores.
+ *
+ * @param {number} a
+ * @param {number} b
+ * @returns {number}
+ */
+function compareNumbers(a, b) {
+    if (a === b) {
+        return 0;
+    }
+    if (!Number.isFinite(a)) {
+        return 1;
+    }
+    if (!Number.isFinite(b)) {
+        return -1;
+    }
+
+    return b - a;
+}
+
+/**
  * Applies modifiers for compeitor grouping
  * For available cases see "groupingOptions"
  * in ./components/modifiers/CompetitorGrouping.vue
- * 
- * @param {*} result 
- * @param {*} groupingModifier 
- * @returns 
+ *
+ * @param {*} result
+ * @param {*} groupingModifier
+ * @returns
  */
 function competitorGrouping(result, groupingModifier) {
     switch (groupingModifier) {
