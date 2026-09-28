@@ -19,6 +19,7 @@ const currentView = computed(() => hasLoadedResults.value ? ScoringView : Import
 <style block="VARIABLES">
 :root {
   --app-background-color: #224e00;
+  --app-highlight-color: #3e8805;
   --app-background-image: url('/src/assets/images/background.png');
 
   --ui-background-color: rgba(0, 36, 0, 0.5);

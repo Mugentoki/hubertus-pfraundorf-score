@@ -17,7 +17,7 @@
 import { Icon } from "@iconify/vue";
 import xmlJsParser from 'xml-js';
 import { useResultStore } from '../stores/result';
-import normalizeResultData from '../lib/normalisation';
+import normalizeResultData, { seasonLineFromDate } from '../lib/normalisation';
 
 const resultStore = useResultStore();
 
@@ -38,6 +38,7 @@ function handleXmlImport(event) {
     // original result is the basis/reset for recalculations
     // mutated result is the result of calculateResult (fresh clone + annotations)
     resultStore.setOriginalResult(jsData);
+    resultStore.initPrintHeader(jsData.name, seasonLineFromDate(jsData.date));
     resultStore.recalculateResult();
   };
   reader.onerror = () => {

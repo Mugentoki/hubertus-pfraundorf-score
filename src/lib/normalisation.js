@@ -130,3 +130,41 @@ function parseGermanDateString(dateString) {
         `${year}-${month}-${day}T${time}`
     );
 }
+
+/**
+ * Derives the season line from the calendar year of the provided date,
+ * e.g. `Saison 2025 / 26` for any date inside 2026. Month/day are ignored.
+ *
+ * @param {*} dateString
+ * @returns
+ */
+export function seasonLineFromDate(dateString) {
+    const year = extractYearFromDate(dateString);
+
+    return year ? `Saison ${year - 1} / ${String(year).slice(-2)}` : '';
+}
+
+/**
+ * Extracts the calendar year from a DISAG date string
+ * (covers `tt.mm.jjjj[ h:mm]`, ISO and similar formats).
+ *
+ * @param {*} dateString
+ * @returns
+ */
+function extractYearFromDate(dateString) {
+    const text = String(dateString ?? '');
+
+    if (text === '') {
+        return 0;
+    }
+
+    const match = text.match(/(\d{4})\b/);
+
+    if (match) {
+        return Number(match[1]);
+    }
+
+    const parsedYear = new Date(text).getFullYear();
+
+    return Number.isNaN(parsedYear) ? 0 : parsedYear;
+}
