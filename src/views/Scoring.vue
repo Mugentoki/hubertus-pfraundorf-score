@@ -44,7 +44,7 @@ function printScoreboard() {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    overflow-y: scroll;
+    overflow-y: auto;
 }
 
 .scoring-table {
