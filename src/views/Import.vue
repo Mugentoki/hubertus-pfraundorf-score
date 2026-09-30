@@ -32,15 +32,16 @@ function handleXmlImport(event) {
   const reader = new FileReader();
   let jsData = null;
 
-  reader.onload = () => {
+reader.onload = () => {
     jsData = normalizeResultData(xmlJsParser.xml2js(reader.result, {compact: true}));
 
     // original result is the basis/reset for recalculations
     // mutated result is the result of calculateResult (fresh clone + annotations)
     resultStore.setOriginalResult(jsData);
     resultStore.initPrintHeader(jsData.name, seasonLineFromDate(jsData.date));
+    resultStore.initFaktors();
     resultStore.recalculateResult();
-  };
+};
   reader.onerror = () => {
     alert("Fehler beim Lesen der XML Datei");
   }

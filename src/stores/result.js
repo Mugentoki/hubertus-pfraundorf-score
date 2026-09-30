@@ -19,6 +19,11 @@ export const useResultStore = defineStore('result', () => {
             options: {
                 adlerStartWithTeiler: false
             }
+        },
+        faktors: {
+            aufgelegt: { ring: 0.95, teiler: 1.5 },
+            pistole:   { ring: 1,    teiler: 0.33 },
+            assignments: {} // { [fullName]: 'aufgelegt' | 'pistole' }
         }
     })
 
@@ -68,6 +73,29 @@ export const useResultStore = defineStore('result', () => {
         printHeader.value = { title: title ?? '', subtitle: subtitle ?? '' };
     }
 
+    function initFaktors() {
+        resultModifiers.value.faktors = {
+            aufgelegt: { ring: 0.95, teiler: 1.5 },
+            pistole:   { ring: 1,    teiler: 0.33 },
+            assignments: {}
+        };
+    }
+
+    function setFaktorsValue(discipline, key, value) {
+        const newValue = Number(value);
+        if (!Number.isFinite(newValue)) return;
+        resultModifiers.value.faktors[discipline][key] = newValue;
+    }
+
+    function setFaktorAssignment(fullName, type) {
+        const assignments = resultModifiers.value.faktors.assignments;
+        if (type === 'none') {
+            delete assignments[fullName];
+        } else {
+            assignments[fullName] = type;
+        }
+    }
+
     function recalculateResult() {
         mutatedResult.value = calculateResult(originalResult.value, resultModifiers.value);
     }
@@ -90,6 +118,9 @@ export const useResultStore = defineStore('result', () => {
         setOriginalResult,
         setMutatedResult,
         initPrintHeader,
+        initFaktors,
+        setFaktorsValue,
+        setFaktorAssignment,
         setPrintHeaderTitle,
         setPrintHeaderSubtitle,
         setResultModifiers,

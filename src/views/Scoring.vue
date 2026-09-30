@@ -6,6 +6,7 @@
             <SeriesGrouping />
             <SeriesGroupCalculation />
             <Ranking />
+            <Faktors />
             <button type="button" class="print-button" @click="printScoreboard">Auswertung drucken</button>
         </div>
         <div class="scoring-table">
@@ -21,6 +22,7 @@ import CompetitorGrouping from '../components/modifiers/CompetitorGrouping.vue';
 import SeriesGrouping from '../components/modifiers/SeriesGrouping.vue';
 import SeriesGroupCalculation from '../components/modifiers/SeriesGroupCalculation.vue';
 import Ranking from '../components/modifiers/Ranking.vue';
+import Faktors from '../components/modifiers/Faktors.vue';
 
 function printScoreboard() {
     window.print();
@@ -42,6 +44,7 @@ function printScoreboard() {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    overflow-y: scroll;
 }
 
 .scoring-table {

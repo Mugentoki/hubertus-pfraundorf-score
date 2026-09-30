@@ -8,12 +8,53 @@ export function calculateResult(originalResult, resultModifiers) {
     competitorGrouping(mutatedResult, resultModifiers.competitorGrouping);
     seriesGrouping(mutatedResult, resultModifiers.seriesGrouping);
     seriesGroupCalculation(mutatedResult, resultModifiers.seriesGroupCalculation);
+    applyFaktors(mutatedResult, resultModifiers.faktors, teilerInfo);
 
     applyRanking(mutatedResult, resultModifiers.ranking, teilerInfo);
 
-    console.log(mutatedResult);
-
     return mutatedResult;
+}
+
+/**
+ * Applies the "Faktor" modifier per competitor.
+ *
+ * For every competitor the pre-factor overall result is recorded as
+ * `competitor.originalTotalScoreDecimal` (used by the "Original" column).
+ * Competitors with a factor assignment then get multiplicatively adjusted:
+ * the overall Ergebnis (`statistics.totalScoreDecimal`) with the discipline
+ * ring factor (rounded to 1 decimal) and the snapshot teiler values
+ * (`teilerInfo` `best`/`second`) with the discipline teiler factor, so
+ * `applyRanking` and every teiler tie-break operate on factored values.
+ * Competitors without an assignment are left untouched (guards: non-finite
+ * values stay unfactored).
+ *
+ * @param {*} result
+ * @param {{
+ *     aufgelegt: { ring: number, teiler: number },
+ *     pistole: { ring: number, teiler: number },
+ *     assignments: Object<string, string>
+ * }} faktors
+ * @param {Map<*, { best: number, second: number }>} teilerInfo
+ */
+function applyFaktors(result, faktors, teilerInfo) {
+    result.groups.forEach((group) => {
+        group.competitors.forEach((competitor) => {
+            competitor.originalTotalScoreDecimal = competitor.statistics.totalScoreDecimal;
+
+            const assignment = faktors.assignments?.[competitor.fullName];
+            if (assignment !== 'aufgelegt' && assignment !== 'pistole') return;
+            const factor = faktors[assignment];
+
+            if (Number.isFinite(competitor.statistics.totalScoreDecimal)) {
+                competitor.statistics.totalScoreDecimal =
+                    Math.round(competitor.statistics.totalScoreDecimal * factor.ring * 10) / 10;
+            }
+
+            const teiler = teilerInfo.get(competitor);
+            if (Number.isFinite(teiler.best))   teiler.best = teiler.best * factor.teiler;
+            if (Number.isFinite(teiler.second)) teiler.second = teiler.second * factor.teiler;
+        });
+    });
 }
 
 /**
